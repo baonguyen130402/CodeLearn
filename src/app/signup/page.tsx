@@ -1,9 +1,9 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { getServerSession } from "next-auth";
+
 import { authOptions } from "@/lib/auth/authOptions";
 import { UserAuthForm } from "./component/user-auth-form";
-import { getServerSession } from "next-auth";
-import { redirect } from "next/navigation";
-import { useGoogleOneTapLogin } from "react-google-one-tap-login";
 
 export default async function Home() {
   const session = await getServerSession(authOptions);

@@ -2,12 +2,17 @@
 
 import * as React from "react";
 
+import { z } from "zod";
+import axios from "axios";
 import { cn } from "@/lib/utils";
+import { useForm } from "react-hook-form";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { zodResolver } from "@hookform/resolvers/zod";
+
 import { Icons } from "@/components/icons/icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import {
   Form,
   FormControl,
@@ -15,17 +20,7 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  GoogleLogin,
-  useGoogleLogin,
-  useGoogleOneTapLogin,
-} from "@react-oauth/google";
-import axios from "axios";
-import { decodeJwt } from "jose";
-import { on } from "events";
+import { useGoogleLogin, useGoogleOneTapLogin } from "@react-oauth/google";
 
 interface UserAuthFormProps extends React.HTMLAttributes<HTMLDivElement> { }
 
@@ -51,24 +46,28 @@ export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
     defaultValues: {},
   });
 
-  const loginGoogle = useGoogleLogin({
-    onSuccess: async (credentialResponse) => {
-      const { access_token } = credentialResponse;
+  const loginGoogle = () => {
+    useGoogleLogin({
+      onSuccess: async (credentialResponse) => {
+        const { access_token } = credentialResponse;
 
-      await axios.post(
-        "http://localhost:8080/v3/auth/login",
-        { access_token: access_token },
-      );
-    },
-    onError: () => {
-      console.log("Login Failed");
-    },
-  });
+        await axios.post(
+          "http://localhost:8080/v3/auth/login",
+          { access_token: access_token },
+        );
+      },
+      onError: () => {
+        console.log("Login Failed");
+      },
+    });
+  };
+
+  console.log(process.env.LOGIN_URL as string);
 
   useGoogleOneTapLogin({
     onSuccess: async (credentialResponse) => {
       const { credential: token } = credentialResponse;
-      await axios.post("http://localhost:8080/v3/auth/login", { token: token });
+      await axios.post(process.env.LOGIN_URL as string, { token: token });
     },
     onError: () => {
       console.log("Login Failed");
